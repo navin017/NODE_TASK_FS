@@ -1,0 +1,513 @@
+import React, { useState ,useEffect} from 'react'
+import '../src/update.css'
+
+
+
+const Updatedetails = ({updateClose,studentDetails}) => {
+    const [update, setUpdate] = useState('');
+  const [updateName, setUpdateName] = useState('');
+  const [tamil, setTamil] = useState('');
+  const [english, setEnglish] = useState('');
+  const [maths, setMaths] = useState('');
+
+  useEffect(() => {
+    if(studentDetails){    // Populate form fields with initial data when the component mounts
+    setUpdate(studentDetails.email || '');
+    setUpdateName(studentDetails.last_name || '');
+    setTamil(studentDetails.mark?.tamil || '');
+    setEnglish(studentDetails.mark?.english || '');
+    setMaths(studentDetails.mark?.maths || '');}
+  }, [studentDetails]);
+    const updateHandler = (e) => {
+        setUpdate(e.target.value)
+    }
+    const updateNameHandler = (e) => {
+        setUpdateName(e.target.value)
+    }
+    const handleTamil = (e) => {
+        setTamil(e.target.value)
+    }
+    const handleEnglish = (e) => {
+        setEnglish(e.target.value)
+    }
+    const handleMaths = (e) => {
+        setMaths(e.target.value)
+    }
+    const closeHandler = (e)=>{
+        // e.preventDefault()
+        updateClose()
+        setUpdate("");
+        setEnglish("");
+        setMaths("");
+        setTamil("");
+        setUpdateName("");
+    }
+    const submitHandler = (e) => {
+       
+        fetch('/update', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: update,
+                updateName: {
+                    last_name: updateName
+                },
+                updatedMarks: {
+                    tamil: tamil,
+                    english: english,
+                    maths: maths
+                }
+            })
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log("Updated Successfully", data.message)
+            })
+            .catch((err) => {
+                console.log("Error Occured", err)
+            })
+            updateClose()
+    }
+    return (
+       
+        <form onSubmit={submitHandler}>
+
+        <div className='total'>
+          <table className='covers'>
+            <tr>
+              <td>
+              <lable>ENTER EMAIL-ID TO UPDATE</lable><br/>
+                <input
+                  type='text'
+                  maxLength={20}
+                  onChange={updateHandler}
+                  className='input-box'
+                  required>
+                </input>
+              </td>
+            </tr>
+            <tr>
+              <td>
+              <lable>UPDATE LAST-NAME</lable><br/>
+            <input
+              className='input-box'
+              type='text'
+              maxLength={20}
+              onChange={updateNameHandler}
+             
+            >
+            </input>
+            </td>
+            </tr>
+            <tr>
+              <td>
+              <p>UPDATE MARKS :</p>
+              <lable>TAMIL</lable><br/>
+            <input
+              className='input-box'
+              type='number'
+              maxLength={20}
+              onChange={handleTamil}
+              >
+            </input>
+            </td>
+            </tr>
+            <tr>
+              <td>
+              <lable>ENGLISH : </lable><br/>
+            <input
+              className='mark'
+              type='number'
+              onChange={handleEnglish}
+             
+            ></input>
+             </td>
+            </tr>
+            <tr>
+              <td>
+            <lable>MATHS : </lable><br/>
+            <input
+              className='mark'
+              type='number'
+              onChange={handleMaths}
+            ></input>
+             </td>
+            </tr>
+            <button type='submit'>UPDATE</button>
+            <button type='submit' onClick={closeHandler}>CLOSE</button>
+          </table>
+        </div>
+  
+      </form>
+    )
+}
+
+export default Updatedetails......
+import { useState, useEffect } from "react"
+import React from 'react'
+import '../src/showStudents.css';
+import Updatedetails from './updatedetails';
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
+
+
+const ShowStudents = () => {
+   const [students, setStudents] = useState([]);
+   const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false); 
+   const [view, setView] = useState();
+   const [selectedStudent, setSelectedStudent] = useState(null);// Add a state variable to manage the visibility of the update form
+   const handleUpdateFormOpen = () => {
+    setIsUpdateFormOpen(true);
+  };
+     
+    
+  useEffect(() => {
+    fetch("/get-students",{
+      mode: 'no-cors'
+    })
+    .then((response)=>response.json())
+      .then(( {data} ) => {
+        setStudents(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    }, [students]);
+    const handleIconClick = (student) => {
+      setSelectedStudent(student);
+      setIsUpdateFormOpen(true); 
+      setView('update')// Set the view state to 'update' to show the Updatedetails component
+    };
+   
+    return (
+      <div>
+      {/* <h1>Students Details</h1> */}
+      <div className="totControl">
+     
+      {students.map((details)=>(
+          <div key={details.id}
+          className="view-details">
+            
+            <table className = 'viewForm'>
+              <tbody>
+                <tr>
+                <span onClick={() => handleIconClick(details)}>
+              <DriveFileRenameOutlineIcon />
+            </span>
+                  {/* <DriveFileRenameOutlineIcon onClick={handleUpdateFormOpen}/> */}
+                
+                <td className='align'><label htmlFor='id' >  ID : </label></td>
+                  <td className="space">
+                  {details.id ? details.id:"NULL"} |
+                  </td>
+                  <td className='align'><label htmlFor='id' >  FIRST NAME : </label></td>
+                  <td >
+                 {details.first_name ? details.first_name:"NULL"} |
+                  </td>
+                  <td className='align'><label htmlFor='id' >  LAST NAME : </label></td>
+                  <td  >
+                  {details.last_name ? details.last_name:"NULL"} |
+                  </td>
+                  <td className='align'><label htmlFor='id' >  EMAIL ID : </label></td>
+                  <td>
+                  {details.email_id} |
+                  </td>
+                  <td className='align'><label htmlFor='id' >  TAMIL : </label></td>
+                  <td>
+                  {details.mark ? details.mark.tamil:"NULL"} |
+                  </td>
+                  <td className='align'><label htmlFor='id' >  ENGLISH : </label></td>
+                  <td>
+                  {details.mark ? details.mark.english:"NULL"} |
+                  </td>
+                  <td className='align'><label htmlFor='id' >  MATHS : </label></td>
+                  <td>
+                  {details.mark ? details.mark.maths:"NULL"} |
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          
+          </div>
+        
+      ))}
+    </div>
+    {selectedStudent && (
+        <Updatedetails
+          updateClose={() => setIsUpdateFormOpen(false)}
+          studentDetails={selectedStudent}
+        />
+      )}    </div>
+  )
+}
+
+export default ShowStudents
+..........................................................................................
+import React, { useState,useEffect} from 'react'
+import '../src/update.css';
+
+
+
+const Updatedetails = ({updateClose,studentDetails}) => {
+    const [update, setUpdate] = useState('')
+    const [updateName, setUpdateName] = useState('')
+    const [tamil, setTamil] = useState("");
+    const [english, setEnglish] = useState("");
+    const [maths, setMaths] = useState("")
+
+    console.log(studentDetails.last_name,"lll")
+    useEffect(() => {
+      if(studentDetails){    
+      setUpdate(studentDetails.email_id || '');
+      setUpdateName(studentDetails.last_name || '');
+      setTamil(studentDetails.mark?.tamil || '');
+      setEnglish(studentDetails.mark?.english || '');
+      setMaths(studentDetails.mark?.maths || '');}
+    }, [studentDetails]);
+    const updateHandler = (e) => {
+        setUpdate(e.target.value)
+    }
+    const updateNameHandler = (e) => {
+        setUpdateName(e.target.value)
+    }
+    const handleTamil = (e) => {
+        setTamil(e.target.value)
+    }
+    const handleEnglish = (e) => {
+        setEnglish(e.target.value)
+    }
+    const handleMaths = (e) => {
+        setMaths(e.target.value)
+    }
+    const closeHandler = (e)=>{
+        // e.preventDefault()
+        setUpdate("");
+        setEnglish("");
+        setMaths("");
+        setTamil("");
+        setUpdateName("");
+        updateClose()
+      }
+     
+    const submitHandler = (e) => {
+       e.preventDefault()
+        fetch('/update', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: update,
+                updateName: {
+                    last_name: updateName
+                },
+                updatedMarks: {
+                    tamil: tamil,
+                    english: english,
+                    maths: maths
+                }
+            })
+        }
+        )
+            .then((response) => response.json())
+            .then((data) => {
+                console.log("Updated Successfully", data.message)
+            })
+            .catch((err) => {
+                console.log("Error Occured", err.message)
+            })
+        
+            updateClose()
+    }
+    return (
+       <div>
+        <form onSubmit={submitHandler}>
+
+        <div className='total'>
+          <table className='covers'>
+            <tr>
+              <td>
+              <lable>ENTER EMAIL-ID TO UPDATE</lable><br/>
+                <input
+                  type='text'
+                  maxLength={20}
+                  onChange={updateHandler}
+                  className='input-box'
+                  value={update}
+                  >
+                </input>
+              </td>
+            </tr>
+            <tr>
+              <td>
+              <lable>UPDATE LAST-NAME</lable><br/>
+            <input
+              className='input-box'
+              type='text'
+              maxLength={20}
+              onChange={updateNameHandler}
+              value={updateName}
+            >
+            </input>
+            </td>
+            </tr>
+            <tr>
+              <td>
+              <p>UPDATE MARKS :</p>
+              <lable>TAMIL</lable><br/>
+            <input
+              className='input-box'
+              type='number'
+              maxLength={20}
+              onChange={handleTamil}
+              value={tamil}
+              >
+            </input>
+            </td>
+            </tr>
+            <tr>
+              <td>
+              <lable>ENGLISH : </lable><br/>
+            <input
+              className='mark'
+              type='number'
+              onChange={handleEnglish}
+              value={english}
+             
+            ></input>
+             </td>
+            </tr>
+            <tr>
+              <td>
+            <lable>MATHS : </lable><br/>
+            <input
+              className='mark'
+              type='number'
+              onChange={handleMaths}
+              value={maths}
+            ></input>
+             </td>
+            </tr>
+            <button type='submit' className='submit' >UPDATE</button>
+            <button type='submit' onClick={closeHandler} className='closes'>CLOSE</button>
+          </table>
+        </div>
+  
+      </form>
+      
+      </div>
+    )
+}
+
+export default Updatedetails
+..............................................................................
+import { useState, useEffect } from "react"
+import React from 'react'
+import '../src/showStudents.css';
+import Updatedetails from './updatedetails';
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
+
+const ShowStudents = () => {
+   const [students, setStudents] = useState([]);
+   const [isUpdateFormOpen, setIsUpdateFormOpen] = useState(false); 
+   const [selectedStudent, setSelectedStudent] = useState(null);
+   const isEditing = true
+  
+
+   const fetchData = () =>
+   fetch("/get-students",{
+      mode: 'no-cors'
+    })
+    .then((response)=>response.json())
+      .then(( {data} ) => {
+        if(data){
+        setStudents(data);
+        console.log(data.message)}
+        else{
+          console.log('nnnn')
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    
+      useEffect(()=>{
+        fetchData()
+      },[students])
+ 
+    const handleIconClick = (student) => {
+      setSelectedStudent(student);
+      setIsUpdateFormOpen(true); 
+      
+    };
+    const closeForm = () =>{
+      setIsUpdateFormOpen(false)
+    }
+  
+    return (
+      <div>
+      {isUpdateFormOpen && (
+        <Updatedetails
+          updateClose={closeForm}
+          studentDetails={selectedStudent}
+
+        />
+      )} 
+      <div className="totControl">
+      {students.map((details)=>(
+          <div
+          id ={(details.id)}
+           key={details.id}
+          className="view-details">
+            <table className = 'viewForm'>
+              <tbody>
+                <tr>
+               
+            <DriveFileRenameOutlineIcon className="icon" onClick={() => handleIconClick(details)} />
+            
+                
+                <td className='align'><label htmlFor='id' >  ID : </label></td>
+                  <td className="space">
+                  {details.id ? details.id:"NULL"} |
+                  </td>
+                  <td className='align'><label htmlFor='id' >  FIRST NAME : </label></td>
+                  <td >
+                 {details.first_name ? details.first_name:"NULL"} |
+                  </td>
+                  <td className='align'><label htmlFor='id' >  LAST NAME : </label></td>
+                  <td  >
+                  {details.last_name ? details.last_name:"NULL"} |
+                  </td>
+                  <td className='align'><label htmlFor='id' >  EMAIL ID : </label></td>
+                  <td>
+                  {details.email_id} |
+                  </td>
+                  <td className='align'><label htmlFor='id' >  TAMIL : </label></td>
+                  <td>
+                  {details.mark ? details.mark.tamil:"NULL"} |
+                  </td>
+                  <td className='align'><label htmlFor='id' >  ENGLISH : </label></td>
+                  <td>
+                  {details.mark ? details.mark.english:"NULL"} |
+                  </td>
+                  <td className='align'><label htmlFor='id' >  MATHS : </label></td>
+                  <td>
+                  {details.mark ? details.mark.maths:"NULL"} |
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          
+          </div>
+        
+      ))}
+    </div>
+    
+    </div>
+  )
+}
+
+export default ShowStudents
+
+
